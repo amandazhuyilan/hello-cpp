@@ -8,6 +8,8 @@ private:
 	static int total_car_num;
 public:
 	Car();
+	Car(float fuel_amount);
+	Car(float fuel, int passengers);
 	~Car();
 	void Accelerate();
 	void Brake();

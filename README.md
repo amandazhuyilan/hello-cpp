@@ -253,3 +253,64 @@ _Rule of Three_: All should be defined if a user implements any of them:
  - Destructor -> free resource
  - Copy Constructor -> perform deep copy
  - Copy Assignment operator -> perform deep copy
+
+### Delegate Constructors
+```cpp
+Car::Car():Car(0) {	// This default constructor will be called last
+}
+
+Car::Car(float fuel_amount):Car(fuel_amount, 0) {	// This parameterized constructor will be called second
+}
+
+
+Car::Car(float fuel, int passeneger) {	// <- This delegated constructor will be called first
+        total_car_num += 1;
+        std::cout << "Car(float, int)" << std::endl;
+        this->speed = 0.0;
+        this->fuel = fuel;
+        this->passengers = passengers;
+}
+```
+### Function keywords `default` & `delete` (C++ 11)
+- `default` can be used for functions that can be synthesized by the compiler (copy constrctor, destructor and assignment operator), it will create a default function for you. Ex. `Integer(const & Integer) = default`
+- `delete` tells the compiler not to synthesize the function, for example, `Integer(const & Integer) = delete` will tell the compiler to not to synthesize a copy constructor.
+
+```cpp
+void SetValue(int m) {
+	this->m-value = m;
+} 
+
+void SetValue(float) = delete; //<-- this will forbid anyone who calls SetValue with a float value.
+```
+## L-value & R-values & R-value references & L-value references
+- L-value:
+ - Has a name
+ - All variables are L-values, and can be assigned with values.
+ - Persists beyond the expression
+ - Functions that return by reference return L-values
+ 
+- R-value:
+ - Does not have a name
+ - Has a temporarily value, cannot be assigned with a value.
+ - Does not persist beyond the expression
+ - Functions that return by value return R-values
+
+- R-value Reference:
+ - Introduced in C++ to implement `move` sementics. Its purpose is to detect temporaries in expressions, so that we can write overload functions based on L-value and R-value references.
+ - It is a reference to a temporary value and represents a temporary, cannot bind to L-values
+ - Created with `&&` operator
+ - Ex. `int && r1 = 10;`, `int && r2 = Add(1, 2);`, `int && r3 = 7+2;`
+
+- L-value References
+ - Can bind to a temporary if the reference is a constant. Ex: `const int &ref = 3` is allowed.
+
+### Move semantics
+In a move semantic, we allocate a new object with a pointer that points to the same address of the object to be copied. The pointer in the original object will be set as `nullptr`.
+
+`move` semantics are prefered over `copy` for operations that generates temporaries, especially when the class has pointers.
+
+The compiler will generate move operations only when the user has not implemented copy semantics and a destructor.
+
+#### `std::move()`
+ - It forces the compiler to perform a `move()` instead of a `copy()` on L-values.
+ - The object that was `move()`d will no longer be available

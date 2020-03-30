@@ -3,8 +3,19 @@
 
 int Car::total_car_num = 0;
 
-Car::Car() {
+Car::Car():Car(0) {
+	std::cout << "Car()" << std::endl;
+}
+
+Car::Car(float fuel_amount):Car(fuel_amount, 0) {
+	std::cout << "Car(float)" << std::endl;
+}
+Car::Car(float fuel, int passeneger) {
 	total_car_num += 1;
+	std::cout << "Car(float, int)" << std::endl;
+	this->speed = 0.0;
+	this->fuel = fuel;
+	this->passengers = passengers;
 }
 
 Car::~Car() {
