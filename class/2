@@ -465,7 +465,7 @@ std::istream & operator >> (std::istream & input, Integer & obj) {
  -> `~Integer()` - destructor for temp object that is created for the assignment operation
 -> `~Integer()`
 
- The overhead of the assignment can be avoided by using the initializer list to initialize the members of the class.
+ Sometimes, the overhead of the assignment can be avoided by using the initializer list to initialize the members of the class.
 
 
 
