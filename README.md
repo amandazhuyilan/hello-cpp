@@ -468,6 +468,37 @@ std::istream & operator >> (std::istream & input, Integer & obj) {
  The overhead of the assignment can be avoided by using the initializer list to initialize the members of the class.
 
 
+## Smart Pointers
+### `unique_ptr`
+ - use `get()` to access the underlying pointer.
+ - use `set()` to delete the current existing pointer and take ownership of new pointer.
+ - `copy()` constructor is `delete`d in `unique_ptr`s
+ - pass the smart pointer via reference or `std::move()` in cases where the unique pointer object needs to be passed around.
 
+```cpp
+#include <memory>
 
+int main() {
+	std::unique_ptr<int> unique_int_ptr{new int(10)};
+	
+	// use get() to access to the data that the unique_ptr points at
+	int b = unique_int_ptr.get();
+	
+	// reset() does 2 things - if smart pointer already holds an existing pointer, the existing pointer will be deleted and the smart pointer will take ownership of the new pointer.
+	unique_int_ptr.reset(new int (12));
+	
+}
+```
 
+### `shared_ptr`
+ - `shared_ptr` is twice the size of a raw pointer, as it holds a pointer to the reference counter.
+ - used for pointers which will be accessing shared resources.
+
+### `weak_ptr`
+ - a smart pointer that holds a non-owning ("weak") reference to an object managed by `shared_ptr`, is always created with a shared pointer.
+```cpp
+	std::shared_ptr<int> p(new int(5));
+	std::weak_ptr<int> wk_p = p;
+```
+- `weak_ptr` models temporary ownership: when an object needs to be accessed only if it exists, and it may be deleted at any time by someone else, `weak_ptr` is used to track the object, and it is converted to `shared_ptr` to assume temporary ownership. If the original `shared_ptr` is destroyed at this time, the object's lifetime is extended until the temporary `shared_ptr` is destroyed as well. To access the original object that `shared_ptr` was pointing to, one would need to use `lock()`.
+ 
