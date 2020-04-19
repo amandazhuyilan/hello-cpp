@@ -501,4 +501,125 @@ int main() {
 	std::weak_ptr<int> wk_p = p;
 ```
 - `weak_ptr` models temporary ownership: when an object needs to be accessed only if it exists, and it may be deleted at any time by someone else, `weak_ptr` is used to track the object, and it is converted to `shared_ptr` to assume temporary ownership. If the original `shared_ptr` is destroyed at this time, the object's lifetime is extended until the temporary `shared_ptr` is destroyed as well. To access the original object that `shared_ptr` was pointing to, one would need to use `lock()`.
- 
+
+
+### `enums`
+ - Enumerators (or symbolic constants) are internally represented as undefined integer types.
+ - Can implicitly convert to an integer but not the other way round.
+ - Default value starts at 0 but users can define starting value.
+ - Visible in scopes that they are defined in.
+
+```cpp
+enum Color{Red, Green, Blue};
+Color c = Red;
+c = 1; // compiler will tell you to use static_cast to convert
+int x = Green; // x will contain 1
+```
+Scoped `enum` with defined type:
+```cpp
+enum class Color : char{Red='c', Blue, Green} // Blue will be of value 'd'
+char c = static_cast<char>(Color::Red); // must use static_cast
+```
+
+### `std::string`
+
+#### Problem with c-style strings:
+ - c-strings are called 'string laterals' - `const char * str = "hello world"` and a null character is appended at the end. Standard C-string functions (`strlen`, `strcp`, `strcat` etc) require the strings to be terminated with a null character to function correctly.
+ - C arrays do not track their own size. You must keep up with size on your own or rely on the linear-time strlen function to determine the size of each string during runtime.
+ - The null character that marks the end of a C-string requires a byte of storage in the char array. This means that a string of length 24 needs to be stored in a 25-byte char array. However, the strlen function returns the length of the string without the null character.
+
+#### `std::string` functions
+```cpp
+	// declaration and assignment
+	std::string my_str;
+	std::string name1("mandi");
+	std::string name2(name1);
+	//populate the buffer with a repeated series of characters
+	std::string filled(16, 'A');
+
+	// comparison
+	if (name1 != name2){
+		std::cout << "name1 != name2" << std::endl;
+	}
+	 
+	// concatation
+	std::string name3 = name1 + name2;
+	name1 += name2;
+
+	// storage related functions
+	name1.size(); 	// returns number of characters in the string
+	name2.length(); // same as size()
+	name3.clear();  // resets the string as an empty string
+	name3.empty();  // returns true if string is currently empty
+
+	// substring related functions
+	name3.find('wh'); // returns the position within a string where the specified character or substring can be found.
+```
+
+### `constexpr`
+ - Can be used for functions or variables, computed at compile time.
+ - `constexpr` functions have to be literal types (`void`, scalar types, references etc)
+ - `constexpr` functions consist of a single line, return statement. (This rule is relaxed in C++14).
+ - `const` vs `constexpr`:
+  - initialization of `const` variables can be deferred until runtime, `constexpr` variable must be initialized at compile time.
+  - all `constexpr` variables are `const`, not the other way round,
+  - Use `const` keyword for variables whose values cannot be changed, use `constexpr` for expressions that can be evaluated at compile time.
+
+```cpp
+constexpr int Max(int x, int y) {
+	return x > y ? x : y;
+};
+int a = 1, b = 2;
+int x = Max(a, b); // behaves like a normal function
+
+constexpr y = Max(4, 5); // correct
+constexpr y1 = Max(x, 5); // x is a literal but not a compile time constant
+```
+
+### `std::initializer_list
+ - Lightweight proxy object that represents an array of objects.
+ - Constructed automatically from a braced list of objects.
+ - Provides access to its elements through iterators.
+ - Need to `#include <initializer_list>` header
+```cpp
+void Print(std::initializer_list<int> values) {
+	// access elements of initializer lists with an iterator
+	auto it = values.begin();
+	while (it != values.end()) {
+		std::cout << *it++ << std::endl;
+	}
+
+	for (auto x : values) {
+		std::cout << x << " ";
+	}
+}
+```
+
+### Unions
+- Represents members in the same memory - memory size determined by the largest member size.
+ - No way to know which are the types the union holds, can be confusing which is the current active union member.
+ - Can only initializa one member within the union.
+ - Cannot assign user-defined types to a union member directly, need to use placement `new` operator (only intializes the memory but does not allocate).
+```cpp
+union ABC {
+	A a;
+	B b;
+	C c;
+	std::string str;
+	ABC() {};
+	~ABC() {};
+}
+
+int main() {
+	ABC abc_1;
+	new(&abc_1.str) std::string("abc");
+	new(&abc_1.a) A{};
+	// have to manually call destructor for user-defined types in unions
+	abc_1.a.~A();
+}
+```
+
+ - User-defined type within an union are not destroyed implictly, need to manually call user-defined type member's destructor. 
+ - Cannot have a base class, cannot derive from another union.
+
+
