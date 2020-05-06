@@ -612,6 +612,7 @@ union ABC {
 
 int main() {
 	ABC abc_1;
+	
 	new(&abc_1.str) std::string("abc");
 	new(&abc_1.a) A{};
 	// have to manually call destructor for user-defined types in unions
@@ -621,5 +622,146 @@ int main() {
 
  - User-defined type within an union are not destroyed implictly, need to manually call user-defined type member's destructor. 
  - Cannot have a base class, cannot derive from another union.
+
+### Templates
+- Generalizes software components that are reused in different situations, for any kind of data.
+- These components are generated at _compile time_, usually used for high performance algorithms and classes.
+```cpp
+	template<typename T>
+	T function(T arg) {
+	}
+```
+#### Template Argument Deduction
+Compiler will perform argument deduction in compile time, by examining the function arguments, then instantiate a function of that particular type.
+
+#### Template Instantiaion
+- Happens when the compiler generates code from template function or class at compile time.
+- Occurs implicitly when:
+ - a function template is invoked,
+ - taking address of a template function,
+ - using explicit instantiation
+ - creating explicit specialization 
+- Full definition of template should be available to the compiler - template definitions should be in header files.
+
+```cpp
+	template <typename T>
+	T Max(T X, T y) {
+		return x > y ? x : y;
+	}
+
+	// explicitly instantiate function template
+	template char Max(char x, char y);
+
+	int main() {
+		int x = 1.1, y = 2.2;
+		// invoke template function with specific type
+		Max<double>(x, y);
+
+		// using explicit instatiation
+		int (*f_ptr)(int, int) = Max;
+	}
+```
+
+#### Explicit Specialization
+ - Template specialization for a certain type, example: implememnt algorithm explicitly for a specific data type,
+ - Explicit specialized function must be defined in a `.cpp` file
+ - Primary template definition should occur before template explicit specialization
+ - Need a `<>` after `template` keyword to differenciate from explicit instantiation:
+```cpp
+	// explicit initialization
+	template char Max(char x, char y);
+	// explicit specialization
+	template<> const char * Max<const char *>(const char * x, const char *y) {
+		return strcmp(x,y) > 0 ? x : y;
+	}
+```
+
+#### Nontype Template Arguments
+- Constant expressions (address, reference, `int`, `nullptr`, `enums`) that are computed at compile time, in template argument list.
+- syntax: `template<typename T, int size>`
+
+
+#### Variadic Templates
+- Functions and classes that accepts arbitary number and types of arguments.
+```cpp
+// template parameter pack
+// 'Params' does not represent a typename, it is an alias to the list of typenames
+template<typename...Params>	// '...' = ellipses
+// Function parameter pack - this function can accept any number and any type of arguments
+void Print(const T &a, const Params&... args) {	// we need an extra argument a here for the base case function to stop the recursion
+	// find out number of parameters in function parameter pack and template parameters in template parameter pack
+	// std::cout << sizeof...(args);
+	// std;;cout << sizeof...(Params);
+	// accessing the args individually via recursion and base case function.
+	std::cout << a;
+	if (sizeof(args) != 0) {
+		std::cout << ","; // print out a comma between the elements
+	}
+	Print(args...);		// number of arguments will reduce by 1
+}
+ 
+// base case function
+void Print() {};
+
+int main() {
+	Print(1, 2.5, "3");
+/* here's what happen when the above Print() is called:
+1. Print(1, 2.5, "3");
+2. Print(2.5, "3");
+3. Print("3");
+4. Print();	<- base case function is called here.
+*/
+}
+```
+
+#### Type Definition (`typedef`)
+ - Introduces a new (shorter, more meaningful) name for an existing type, this new name becomes a synonym of that type.
+ - Implementation details that might change can be encapsulated.
+ - Does not include new type, only introduces a new name for existing type.
+
+Examples:
+```cpp
+typedef unsigned int UINT;
+UINT val{};
+
+typedef long long LLONG;
+LLONG elem{};
+
+typedef std<vector<std::list<Employee>> Teams;
+Teams testingTeams;
+Teams::iterator it = testingTeams.begin();
+ 
+// function pointers
+typedef ErrorFn const char *(*ErrorFn)(int);
+ErrorFn pfn = GetErrorMessage;
+```
+
+#### Template Type Alias (C++ 11)
+ - Simiar to `typedef`, creates a synonym of an existing type,
+ - Does not introduce a new type, 
+ - Created through `using` keyword: `using identifier = type`:
+```cpp
+using UINT = unsigned int;
+UINT val{};
+
+using LLONG = long long;
+LLONG elem{};
+
+using Teams = std<vector<std::list<Employee>>;
+Teams testingTeams;
+Teams::iterator it = testingTeams.begin();
+ 
+// function pointers
+using ErrorFn = const char *(*)(int);
+ErrorFn pfn = GetErrorMessage;
+```
+
+```cpp
+using Names = std::vector<std::list<std::string>>;
+
+int main() {
+	Names name1;
+}
+```
 
 
