@@ -763,5 +763,139 @@ int main() {
 	Names name1;
 }
 ```
+ 
+ - Compared to `typedef`, aliases has the ability to create the so-called alias template: an alias that keeps an open door to the underlying type. You can have the usual type aliasing and the ability to specify the template parameter(s) in the future:
+	```cpp
+	template<typename T1, typename T2> using Map = std::map<T1, std::vector<T2>>;
+
+	// Actual type: std::map<std::string, std::vector<std::string>> (as in the original example)
+	Map<std::string, std::string> map1;
+
+	// Actual type: std::map<int, std::vector<int>>
+	Map<int, int> map2;
+
+	// Actual type: std::map<int, std::vector<float>>
+	Map<int, float> map3;
+	``` 
+
+#### `static_assert(expression, failure_msg)`
+Used to evaluate an expression at compile time. Used to checks for code that you never want to be run.
+
+Example 1: check if we are compiling with 32-bit or 64-bit machine.
+	```cpp
+	#inclde<iostream>
+
+	int main() {
+		static_assert(sizeof(void*) == 4, "The current machine is not 2-bit ");
+	}
+	```
+Example 2: Used together with type traits for type checking in Templates variables at compile time:
+	```cpp
+	#include<iostream>
+	#include<type_traits>
+
+	template<typename T>
+	T Divide(T a, T b) {
+		static_assert(std::is_floating_point<T>::value, "only floating point type supported!");
+		return a / b;
+	}
+	```
+
+## Object Oriented Programming
+
+### Access modifiers
+##### Base class:
+- `private`: members are inaccessible outside the class, accessible to members of the class
+- `public`: members are accessible even outside of the class
+- `protected`: members are accessible within the class and its child classes
+
+##### Child class: (`class Child : access_modifier Base {}`)
+- `public` child classes can access `public` and `protected` members of base class.
+- `private` child classes will inherit all members from base class as private members. __Base class private members will be inherited but not accessible from the child class.__ `public` and `protected` base class members will be accessible within the child class.  
+- `protected` child classes will inherit all members from base class as protected members, the access modifier of base class private members will not be modified, will still be inherited as `private` members in the child class.
+- default access modifier for a child class is `private`, for a `struct` is `public`. Does not matter if base class is class or `struct`.
+
+### Polymorphism
+- Complie Time Polymorphism (compile time binding) examples: function overloading, overator overloading and templates. The compiler has enough information at compile time to determine which functions to be invoked. 
+- Run Time Polymorphism (dynamic binding) implemented via `virtual` mechanism - polymorphism functions. These functions are invoked through a pointer or reference, are re-implemented in child classes with their own implementations.
+
+#### How `virtual` function works
+When the base class with `virtual` functions is compiled, it would generate an array of function pointers called as virtual table, which contains the addresses of the virtual functions. The starting address of the virtual table is stored in a special member variable called as virtual pointer, which is added by the compiler as the member of the class.
+
+This process will be identical for each child class. The virtual pointer of the base class will inherited and used to initialize the virtual table of the child class.
+
+Here is what happens when a child class `virtual` function is called:
+1. Get child class object address
+2. Get the virtual pointer
+3. Find the position of the `virtual` function in the virtual table
+4. Get the address of the function (will need to add offsets incremented by pointer sizes depending on where the functions are located in the virtual table)
+5. Invoke the function
+
+Base class should always have `virtual` destructor. Virtual destructors are useful when you might potentially delete an instance of a derived class through a pointer to base class. Here is an example why:
+
+```cpp
+class Base 
+{
+    // some virtual methods
+};
+
+class Derived : public Base
+{
+    ~Derived()
+    {
+        // Do some important cleanup
+    }
+};
+
+int main() {
+	Base *b = new Derived();
+	// use b
+	delete b; // Here's the problem!
+}
+```
+
+Since `Base`'s destructor is not `virtual` and b is a `Base*` pointing to a `Derived` object, `delete b` has _undefined behaviour_:
+
+[In delete b], if the static type of the object to be deleted is different from its dynamic type, the static type shall be a base class of the dynamic type of the object to be deleted and the static type shall have a virtual destructor or the behavior is undefined.
+
+In most implementations, the call to the destructor will be resolved like any non-virtual code, meaning that the destructor of the base class will be called but not the one of the derived class, resulting in a resources leak.
+
+To sum up, always make base classes' destructors virtual when they're meant to be manipulated polymorphically.
+
+If you want to prevent the deletion of an instance through a base class pointer, you can make the base class destructor`protected` and nonvirtual; by doing so, the compiler won't let you call delete on a base class pointer.
+
+#### `final`
+Used to prevent a class from being inherited: `class last_class final{};`
+
+#### `override`
+Used to tell the compiler that a `virtual` function is overridden in the child class with the same function name and signature.
+```cpp
+class Base {
+public:
+	virtual void my_function();
+
+};
+
+class Child : public Base {
+	void my_function override();
+	// void my_function override final (); // mark with `final` if you don't want the child class to override this function
+	
+};
+```
+
+### Upcasting & Downcasting
+#### Upcasting
+Casting a child class object to base class object. This can only be accomplished using pointer and references, or else object slicing (object slicing occurs when an object of a subclass type is copied to an object of superclass type: the superclass copy will not have any of the member variables defined in the subclass. These variables have, in effect, been "sliced off") will happen.
+```cpp
+	Child c();
+	Base *b = &c;
+```
+
+#### Downcasting
+Casting a base class object to a child class object, need to manually specify the class:
+```cpp
+	Base b();
+	Child *c = static_cast<Child *>(b);
+```
 
 
