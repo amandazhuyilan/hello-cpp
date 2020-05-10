@@ -1,4 +1,4 @@
-## hello-cpp 
+# hello-cpp 
 This repo contains my study notes for C++.
 
 ### C++ Build Process - from source code to executable
