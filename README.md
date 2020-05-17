@@ -448,7 +448,32 @@ std::istream & operator >> (std::istream & input, Integer & obj) {
 ```
  - Parameterized constructors are used by the compiler implictly when converting primative types to user defined types. If this is not desired, add `explict` keyword in front of the class constructor.
 
+#### RRTI (Run-Time Type Information)
+There are serveral ways to determine the variable type at compile/run time:
+1. `typeinfo` - `typeid` operator returns information of the type as an object of the `typeinfo` class. 
+```cpp
+#include <typeinfo>
 
+int main() {
+	int i;
+	const std::typeinfo &ti = typeid(i);
+	std::cout << ti.name() << std::endl;	// will print 'int' 
+}
+```
+- When `typeid` is used on non-polymorphic types, it will run at compile time; if used on polymorphic type, it will run at runtime. 
+- "_A class that declares or inherits a virtual function is called a polymorphic class._"
+
+2. Using `dynamic_cast` operator - it will check if the typecast can be performed or not. If can be performed it will return the typecasted pointer, otherwise return `NULL`.
+``cpp
+Checking *pChecking = dynamic_cast<Checking*>(pAccount);
+if (pChecking != nullptr) {
+	// std::cout << "cast performed successfully!" << std::endl;
+	}
+```
+
+Ideally, we should avoid using `typeid` and `dynmaic_casts`, as it creates overhead at compile time:
+ - when using `typeid`, during compile time, the compiler creates the type information, such as a `type_info` object, stored with the class vtable. This information will be later queried during runtime.
+- `dynamic_cast` is slower than `typeid` as it will require the compiler to run through the class hierachy to determine if the typecast can be performed or not. 
 ### Initialization vs. Assignment
 
 ##### Initialization
@@ -818,6 +843,7 @@ Example 2: Used together with type traits for type checking in Templates variabl
 ### Polymorphism
 - Complie Time Polymorphism (compile time binding) examples: function overloading, overator overloading and templates. The compiler has enough information at compile time to determine which functions to be invoked. 
 - Run Time Polymorphism (dynamic binding) implemented via `virtual` mechanism - polymorphism functions. These functions are invoked through a pointer or reference, are re-implemented in child classes with their own implementations.
+- "_A class that declares or inherits a virtual function is called a polymorphic class._"
 
 #### How `virtual` function works
 When the base class with `virtual` functions is compiled, it would generate an array of function pointers called as virtual table, which contains the addresses of the virtual functions. The starting address of the virtual table is stored in a special member variable called as virtual pointer, which is added by the compiler as the member of the class.
