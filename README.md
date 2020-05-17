@@ -890,6 +890,13 @@ To sum up, always make base classes' destructors virtual when they're meant to b
 
 If you want to prevent the deletion of an instance through a base class pointer, you can make the base class destructor`protected` and nonvirtual; by doing so, the compiler won't let you call delete on a base class pointer.
 
+### pure `virtual` function(s) and abstract class.
+- syntax: `virtual func() = 0`. Child class will have to implement the pure `virtual` function(s). 
+- pure `virtual` functions do not have an entry in the class vtable, but exists in child classes vtables to define the layout of class functions.
+- The class that contains at least one pure `virtual` functions is an abstract class. Abstract classes cannot be instantiated, but you can create their pointer and references.
+- Abstract classes establish a contract with clients, the contract guarantees the implementation of the behavior provided by the child classes - that is why abstract are used to create interfaces.
+
+
 #### `final`
 Used to prevent a class from being inherited: `class last_class final{};`
 
