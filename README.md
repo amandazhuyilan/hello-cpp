@@ -931,4 +931,77 @@ Casting a base class object to a child class object, need to manually specify th
 	Child *c = static_cast<Child *>(b);
 ```
 
+### Exception Handling
+1. `try`, `throw` & `catch` example usage:
+```cpp
+#include <iostream>
+#include <limits>
 
+int ProcessRecords(int count) {
+    int *pArray = (int*)malloc(count * sizeof(int));
+    if (count < 10) {
+        throw std::out_of_range("Count should be greater than 10!");
+    }
+    if (pArray == nullptr) {
+        throw std::runtime_error("failed to allocate memory!");
+    }
+    for (int i = 0; i < count; ++i) {
+        pArray[i] = i;
+    }
+
+    free(pArray);
+    return 0;
+}
+
+int main() {
+    try {
+        // ProcessRecords(std::numeric_limits<int>::max());
+        ProcessRecords(5);
+
+    }
+
+    // catch multiple specific exceptions
+    catch (std::runtime_error &exc) {
+        std::cout << exc.what() << std::endl;
+    }
+    catch (std::out_of_range &exc) {
+        std::cout << exc.what() << std::endl;
+    }
+
+    // catch all std:exception
+    catch (std::exception &exc) {
+        std::cout << "Caught as all exceptions: " << exc.what() << std::endl;
+    }
+
+    // all other implicit catches with no specific documentation - should be avoid using this catch pattern
+    catch (...) {
+        std::cout << "An unexpected error happened!" << std::endl;
+    }
+}
+```
+
+2. Stack Unwinding
+When an exception is thrown, the stack will be unwinded to destroy _local_ objects - objects that are created on the heap will not be destroyed and memory will be leaked. 
+
+The solution to this issue is to use smart pointers (`std::unique_ptr`s and `std::shared_ptr`s) and containers (`std::vector`s, `std::string`s).
+
+Destructors should not contain exceptions, as it may be involed during the stack unwinding process, the stack unwinding can be the result of another exception. The program will terminate if the destructor throws an exception.
+
+3. Nested Stack Unwinding
+[TODO] Add code here in example where exception is modified and re-`throw`n.
+
+### `noexcept`
+- Notifies the compiler that there are no exceptions in the function (both in declaration and definition), so that further optimization can be applied (no need to generate stack unwinding code).
+- Function that uses library functions should not be marked as `noexcept(true)`, destructor are marked implictly with `noexcept` keyword. Move operators (constructor /assignment) functions should also be marked with `noexcept(true)`, as some container objects only use move (instead of copy) operators when marked with `noexcept(true)`.
+-  Only used for functions given strong guarantee that they do not throw.
+- `noexcept(true)` = no exception is thrown; even though the keyword is added to the function declaration, it 
+```cpp
+void Test(int x) {
+	throw x;
+}
+
+// compiler will check at compile time the exception specification of Test and pass it to Sum function.
+int Sum(int a, int b) noexcept(noexcept(Test(a))) {
+	return (a + b);
+}
+```
