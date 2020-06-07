@@ -1005,3 +1005,66 @@ int Sum(int a, int b) noexcept(noexcept(Test(a))) {
 	return (a + b);
 }
 ```
+
+### Concurrency
+#### `std::thread()`
+- used to create a thread, takes in callable function reference as input
+- `join()`: waits for a thread to finish its execution
+- `detach()` permits the thread to execute independently from the thread handle
+- initialize thread with a reference_wrapper `std::ref` as the arguments to the thread function are moved or copied by value:
+```cpp
+void Download(std::string &file_name) {
+	...
+}
+
+int main() {
+	std::string test_file_name = "test.cpp";
+	std::thread download_thread(Download, std::ref(test_file_name));
+}
+```
+
+#### Synchronization Between Threads
+1. `std::mutex()` - a synchronization primitive that can be used to protect shared data from being simultaneously accessed by multiple threads. 
+- Solves __race conditions__.
+- A calling thread owns a mutex from the time that it successfully calls either `lock()` or `try_lock()` until it calls `unlock()`.
+ - The thread waiting for the mutex to be unlocked will be in sleep mode and put on a queue until its turn comes.
+- Can cause __deadlock__: when one thread locks the mutex, then exits without unlocking the mutex, the second thread waiting for the first thread to unlock the mutex will be waiting forever.
+
+2. `std::lock_guard()`
+- A mutex wrapper that provides a convenient RAII-style mechanism for owning a mutex for the duration of a scoped block.
+- Solves the issue of deadlocking caused by manually `lock()`ing and `unlock()` mutexes:
+```cpp
+std::mutex g_mutex;
+
+std::lock_guard<std::mutex> mtx(g_mutex);
+```
+
+3.Other `std::thread` functions & `this_thread` namespace
+- `std::thread::hardware_concurrency()` - number of threads to start to maximize CPU usage.
+- `std::this_thread::get_id()` (used in thread callback function) - get thread id.
+- `std::this_thread::sleep_for(std::chrono::seconds(1))` - delay 
+
+
+### Task Based (High Level) Concurrency 
+- A task is a function that is automatically executed in a separate thread.
+
+#### `std::async(callable, args)` & `std::async(launch_policym callable, args)`
+ - runs a function asynchronously (__potentially in a separate thread which may be part of a thread pool__) and returns a std::future that will eventually hold the result of that function call.
+- using `std::thread` to launch a thread forces the creation of a new thread instead of using one from a pool with `std::async()`.
+- `args` are always passed by value - need to use `std::ref()` reference wrapper.
+- launch policies (if not specified, may not always create a new thread):
+ - `std::launch::deferred` - task is executed synchronously
+ - `std::launch::async` - task is executed asynchronously - will throw `std::system_error` exception if new thread cannot be created.
+
+#### `std::future`
+- used for communication between threads, it has a shared state that can be accessed by threads.
+- created through a `std::promise` object, created by `std::async` that directly returns a future object.
+- `std::promise` - input channel to task, `std::future` - output channel for task, they allow safe data sharing between threads without requiring explict synchronization.
+- shared state: value set by the task, the thread that reads the shared state will wait for the future is ready(task returns the value).
+- `wait()` and `get()` will block the calling thread until the shared state is ready. 
+
+#### `std::promise`
+- Provides a way to store a value or an exception
+- this is a shared state that can be accessed from another thread object `std::future`. One operation stores a value in a `std::promise` and the other operation with retrieve it via a `std::future` asynchronously.
+- these operations are synchronized, therefore thread-safe.
+- `std::promise` can be only used once. 
