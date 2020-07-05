@@ -21,20 +21,20 @@ merges the object-code files with the code implementing library functions and ge
 
 ### Reference & Pointer
 - Reference
- - No storage required, address of referent is the same address of the referemce
- - Always needs to be initialized (`int &ref = x;` instead of `int &ref;` and `int &ref = 10;`)
- - Cannot be `nullptr`
- - Bound to its referent throughtout its lifetime, without changing the referent
- - No need to dereference to access value
- - When reference is set as `const`, it can be assigned to literal values (`const int &ref = 10;`)
+  - No storage required, address of referent is the same address of the referemce
+  - Always needs to be initialized (`int &ref = x;` instead of `int &ref;` and `int &ref = 10;`)
+  - Cannot be `nullptr`
+  - Bound to its referent throughtout its lifetime, without changing the referent
+  - No need to dereference to access value
+  - When reference is set as `const`, it can be assigned to literal values (`const int &ref = 10;`)
 
 
 - Pointer
- - Needs storage
- - Initialization need not be necessary.
- - Can be a `nullptr`
- - Can point to other variables
- - Need to dereference operator to access value in the address
+  - Needs storage
+  - Initialization need not be necessary.
+  - Can be a `nullptr`
+  - Can point to other variables
+  - Need to dereference operator to access value in the address
 
 #### When to use reference and when to use pointers?
 When using pointer as function input arg, one would always have to check if the input is a `nullptr`. However if using a reference as input arg, since it cannot be a `nullptr`, we would not need to check for null.
