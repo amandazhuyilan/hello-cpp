@@ -1068,3 +1068,48 @@ std::lock_guard<std::mutex> mtx(g_mutex);
 - this is a shared state that can be accessed from another thread object `std::future`. One operation stores a value in a `std::promise` and the other operation with retrieve it via a `std::future` asynchronously.
 - these operations are synchronized, therefore thread-safe.
 - `std::promise` can be only used once. 
+
+#### lambda expressions
+ - Lambda is interpreted as an anonymous function object inside the compiler.
+```
+// '[]' is the lambda introducer
+[](<input_args>)<mutable_specification> <exception_specification> <return_type>
+{
+	// lambda body
+}
+```
+- Capturing  (setting and passing an offset value into a lambda) is implemented via `[]`, where its value(s) will be made a copy. Captures can be made mutable via the `mutable` keyword when captured by value:
+```
+    result_vector_int_2 = for_each(test_vector_int, [offset](int &x) mutable {
+        offset++;
+        return x+offset;
+    });
+```
+
+- Capture List Mode (all "enclosing scope variables" here mean the ones that are previously _declared_)
+ - `[var]` - capture `var` by value;
+ - `[=]` - capture all enclosing scope variables by value;
+ - `[&var]` - capture `var` by reference;
+ - `[&]` - capture all enclosing scope variable by reference;
+ - `[&, var]` - capture `var` by value and all other scope variables by reference
+ - `[=, &var]` - capture `var` by reference and all other scope variables by value
+ - `[this]` - capture `this` (used to access all class member variables)
+
+- Lambda within Lambda:
+```
+    [](int x) {
+        x *= 2;
+        [](int x) {
+            std::cout << "[TestCase4] lambda within lambda: " << x << std::endl;
+        }(x);
+    }(5);
+```
+
+- Generalized Capture (`C++ 14`)
+
+```
+// useful for non-copiable objects or if capturing a unique pointer
+auto fn = [y = std::move(x)](int arg) {
+	return arg + y;
+};
+```
