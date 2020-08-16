@@ -1113,3 +1113,102 @@ auto fn = [y = std::move(x)](int arg) {
 	return arg + y;
 };
 ```
+
+** STL
+0. Iterators
+- Pointer like objects used to access container elements by their position
+- Created through `begin()` [points to first element in container] and `end()` [points to position beyond lat element].
+```cpp
+auto vec_itr = vec_1.begin();
+while (vec_itr != vec_1.end()) {
+    std::cout << *vec_itr++ << std::endl;
+}
+```
+
+1. `std::array()`
+- Thin wrapper around C style static array (stores elements in a static array internally)
+- Supports iterators, knows about the size of the array
+- Provides random access to elements
+-  Cannot grow in size in run time, as it is created at compile time.
+
+```cpp
+// initailizing an array
+std::array<int, 2> arr_1 = {1, 2};
+```
+
+2. `std::vector`
+- Behaves like a dynamic array - can grow automatically
+- Good for addition and removal for elements at the end
+- Provides random access (since internally implememted as array)
+- Not good for insertion or addition except for at the end
+```cpp
+// initialize a vector
+std::vector<int> vec_1{1,2,3};
+// can modify elements via overloaded subscript operator
+vec_1[1] = 10;
+
+vec_1.insert(vec_1.begin(), 11);
+vec_1.erase(vec_1.end() - 1);
+vec_1.pop_back();
+```
+
+3. `std::deque()`
+- Efficient for additional / removal at both ends - usually used for implementing queues
+- Grows automatically
+- Provides random access
+- Not good for insertion / deletion except for at the ends
+
+```cpp
+// initialize a deque via push_back() and push_front()
+std::deque<int> deq_1;
+deq_1.push_back(2);
+deq_1.push_back(3);
+deq_1.push_front(1);
+// can modify elements via overloaded subscript operator
+deq_1[1] = 10;
+
+deq_1.insert(deq_1.begin(), 11);
+deq_1.erase(deq_1.end() - 1);
+deq_1.pop_front();
+deq_1.pop_back();
+```
+
+4. `std::list`
+- Implemented as two-way linked list
+- Efficient for insetion / deletion anywhere
+- Does not provide random access
+
+```cpp
+std::list<int> list_1;
+for (int i = 0; i < 5; i++) {
+	list_1.push_back(i * 10);
+}
+
+// access list only via iterators 
+auto list_iter = list_1.begin();
+while (list_iter != list_1.end()) {
+	std::cout << *list_iter++ << std::endl;
+}
+```
+
+5. `std::forward_list`
+- One-way linked list (each node has a forward pointer only), small memory footprint
+- Efficient for insertion and deletion anywhere in the list
+- Does not have support for size
+- Elements are always added to the front - when accessing foward list elements, the elements are ordered backwards
+```cpp
+\std::forward_list<int> forward_list_1;
+for (int j = 0; j < 10; j ++) {
+	// use only push_front to populate forward list!
+	forward_list_1.push_front(j);
+}
+
+auto iter_foward_list = forward_list_1.begin();
+while (iter_foward_list != forward_list_1.end()) {
+	std::cout << *iter_foward_list++ << std::endl;
+} // will print 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
+
+// you can erase and insert anywhere in the forward list, as long you know the iterator
+forward_list_1.insert_after(forward_list_1.begin(), 10);
+forward_list_1.erase_after(forward_list_1.begin());
+```
